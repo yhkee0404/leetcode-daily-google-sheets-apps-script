@@ -1,6 +1,8 @@
 async function sendDiscordYesterday() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = spreadsheet.getSheets().find(x => x.getSheetName().startsWith("[진행]"));
+  // test sheet id 990701901
+  // prod sheet id 1030832484
+  const sheet = spreadsheet.getSheetById(990701901);
   const userSheet = spreadsheet.getSheetByName('명단');
 
   const date = new Date();
