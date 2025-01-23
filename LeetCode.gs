@@ -1,3 +1,5 @@
+// Compare and open pull request here: https://github.com/yhkee0404/leetcode-daily-google-sheets-apps-script
+
 const leetCodeUrl = 'https://leetcode.com';
 
 const leetCodeQueries = {

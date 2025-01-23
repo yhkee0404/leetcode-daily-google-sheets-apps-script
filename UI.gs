@@ -1,3 +1,5 @@
+// Compare and open pull request here: https://github.com/yhkee0404/leetcode-daily-google-sheets-apps-script
+
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
   ui.createMenu('수동 동기화')
