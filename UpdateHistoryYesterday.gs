@@ -1,3 +1,5 @@
+// Compare and open pull request here: https://github.com/yhkee0404/leetcode-daily-google-sheets-apps-script
+
 async function updateHistoryYesterday() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   // test sheet id 990701901
