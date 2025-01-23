@@ -9,7 +9,7 @@ async function sendDiscordYesterday() {
 
   const date = new Date();
 
-  const yesterdayCell = sheet.getRange('A5:5').createTextFinder(date.getUTCDate() - 1).findNext();
+  const yesterdayCell = sheet.getRange('F5:5').createTextFinder(date.getUTCDate() - 1).findNext();
   if (yesterdayCell === null) {
     return;
   }
@@ -26,39 +26,31 @@ async function sendDiscordYesterday() {
     return;
   }
 
-  // 변경 대상은 번호가 1부터 오름차순 증가하는 연속한 행들만이다.
-  const ranges = sheet.getRange('B6:B').createTextFinder('^\\d+$').useRegularExpression(true).findAll();
-  let s = 0, e = 0;
-  for (let i = 0; i != ranges.length; i++) {
-    const range = ranges[i];
-    if (e == 0) {
-      if (range.getValue() != 1) {
-        continue;
-      }
-      s = range.getRow();
-      e = s + 1;
-    } else if (range.getRow() != e) {
-      break;
-    } else {
-      e++;
-    }
-  }
+  // 변경 대상 번호는 6행부터 1번이다. 오름차순인지는 확인하지 않는다. 연속하지 않을 수도 있다.
+  const rowStart = 6;
+  const targets = sheet.getRange(`B${rowStart}:B`).createTextFinder('^\\d+$').useRegularExpression(true).findAll()
+      .map(range => range.getRow());
+      
+  const leetCodeIds = sheet.getRange(`D${rowStart}:D`).getValues();
 
   // https://gist.github.com/tanaikech/82a74e64abcacabd51be8ff92c73691a
-  const historyRange = sheet.getRange(s, yesterdayCell.getColumn(), e - s);
+  const historyRange = sheet.getRange(rowStart, yesterdayCell.getColumn(), leetCodeIds.length);
   const orgNumberFormats = historyRange.getNumberFormats();
   const histories = historyRange.setNumberFormat("@").getRichTextValues();
   historyRange.setNumberFormats(orgNumberFormats);
 
   const items = []
-  const leetCodeIds = sheet.getRange(s, 4, histories.length).getValues();
-  for (let i = s, j = 0; i != e; i++, j++) {
-    const history = histories[j][0];
+  for (let i = 0, j = 0, row = rowStart; i != leetCodeIds.length && j != targets.length; i++, row++) {
+    if (row != targets[j]) {
+      continue;
+    }
+    j++;
+    const history = histories[i][0];
     const streak = history.getText();
     if (! streak) {
       continue;
     }
-    const leetCodeId = leetCodeIds[j][0];
+    const leetCodeId = leetCodeIds[i][0];
     if (! leetCodeId || leetCodeId == 'Not Found') {
       continue;
     }
