@@ -8,7 +8,7 @@ async function updateHistoryYesterday() {
 
   const date = new Date();
 
-  const yesterdayCell = sheet.getRange('A5:5').createTextFinder(date.getUTCDate() - 1).findNext();
+  const yesterdayCell = sheet.getRange('F5:5').createTextFinder(date.getUTCDate() - 1).findNext();
   if (yesterdayCell === null) {
     return;
   }
@@ -40,33 +40,26 @@ async function updateHistoryYesterday() {
   }
   */
 
-  // 변경 대상은 번호가 1부터 오름차순 증가하는 연속한 행들만이다.
-  const ranges = sheet.getRange('B6:B').createTextFinder('^\\d+$').useRegularExpression(true).findAll();
-  let s = 0, e = 0;
-  for (let i = 0; i != ranges.length; i++) {
-    const range = ranges[i];
-    if (e == 0) {
-      if (range.getValue() != 1) {
-        continue;
-      }
-      s = range.getRow();
-      e = s + 1;
-    } else if (range.getRow() != e) {
-      break;
-    } else {
-      e++;
-    }
-  }
+  // 변경 대상 번호는 6행부터 1번이다. 오름차순인지는 확인하지 않는다. 연속하지 않을 수도 있다.
+  const rowStart = 6;
+  const targets = sheet.getRange(`B${rowStart}:B`).createTextFinder('^\\d+$').useRegularExpression(true).findAll()
+      .map(range => range.getRow());
   
-  const leetCodeIds = sheet.getRange(s, 4, e - s).getValues();
-  const previousHistories = sheet.getRange(s, yesterdayCell.getColumn() - 1, leetCodeIds.length).getValues();
+  const leetCodeIds = sheet.getRange(`D${rowStart}:D`).getValues();
+  
+  const previousHistories = sheet.getRange(rowStart, yesterdayCell.getColumn() - 1, leetCodeIds.length).getValues();
+  
   const promises = []
-  for (let i = s, j = 0; i != e; i++, j++) {
-    const leetCodeId = leetCodeIds[j][0];
+  for (let i = 0, j = 0, row = rowStart; i != leetCodeIds.length && j != targets.length; i++, row++) {
+    if (row != targets[j]) {
+      continue;
+    }
+    j++;
+    const leetCodeId = leetCodeIds[i][0];
     if (! leetCodeId || leetCodeId == 'Not Found') {
       continue;
     }
-    const streak = (+ previousHistories[j][0] || 0) + 1;
+    const streak = (+ previousHistories[i][0] || 0) + 1;
     promises.push(new Promise(resolve => {
       // 하루에 15개보다 많이 푸는 사람이 있다면 더 크게 조절해야 한다.
       const variables = {
@@ -88,7 +81,7 @@ async function updateHistoryYesterday() {
       if (!! submission && submission.timestamp >= yesterday) {
         const linkUrl = `${yesterdayQuestion.getRichTextValue().getLinkUrl()}submissions/${submission.id}/`;
         const richTextValue = SpreadsheetApp.newRichTextValue().setText(streak).setLinkUrl(linkUrl).build();
-        sheet.getRange(i, yesterdayCell.getColumn()).setRichTextValue(richTextValue);
+        sheet.getRange(row, yesterdayCell.getColumn()).setRichTextValue(richTextValue);
       }
       resolve();
     }));
