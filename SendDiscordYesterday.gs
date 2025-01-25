@@ -56,7 +56,7 @@ async function sendDiscordYesterday() {
     }
     const linkUrl = history.getLinkUrl();
     const discordName = leetCodeIdToDiscordName[leetCodeId] || '';
-    items.push([discordName, linkUrl ? `[yesterdayString](${linkUrl})` : yesterdayString, `${streak} days`]);
+    items.push([discordName, linkUrl ? `[${yesterdayString}](${linkUrl})` : yesterdayString, `${streak} days`]);
   }
   
   const embeds = items.map(item => embedDiscordMessage(...item));
