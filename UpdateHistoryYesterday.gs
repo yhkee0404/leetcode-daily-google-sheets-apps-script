@@ -14,7 +14,8 @@ async function updateHistoryYesterday() {
   }
   // 어제의 문제를 최근에 풀었더라도 어제 안 풀었으면 결석이다.
   date.setUTCHours(0, 0, 0, 0);
-  const yesterday = date.getTime() / 1000 - 24 * 3600;
+  const today = date.getTime() / 1000;
+  const yesterday = today - 24 * 3600;
 
   // 어제의 문제는 어제 자동으로 입력됐다.
   const yesterdayQuestion = sheet.getRange(4, yesterdayCell.getColumn());
@@ -78,7 +79,7 @@ async function updateHistoryYesterday() {
       const data = JSON.parse(response.getContentText());
 
       const submission = data.data.recentAcSubmissionList.find(x => x.title == title);
-      if (!! submission && submission.timestamp >= yesterday) {
+      if (!! submission && submission.timestamp >= yesterday && submission.timestamp < today) {
         const linkUrl = `${yesterdayQuestion.getRichTextValue().getLinkUrl()}submissions/${submission.id}/`;
         const richTextValue = SpreadsheetApp.newRichTextValue().setText(streak).setLinkUrl(linkUrl).build();
         sheet.getRange(row, yesterdayCell.getColumn()).setRichTextValue(richTextValue);
