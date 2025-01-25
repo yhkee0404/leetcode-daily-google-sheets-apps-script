@@ -106,7 +106,7 @@ javascript:(async ()=>{
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
   */
-  function embedsDiscordMessage(nickname, date, streak) {
+  function embedDiscordMessage(nickname, date, streak) {
     return {
       title: "[Bookmark] LeetCode Daily Challenge Completed! 🎉",
       description: "모바일 또는 크롬 외 브라우저의 북마크 인증입니다. 지난 문제 재인증을 지원합니다.",
@@ -123,7 +123,7 @@ javascript:(async ()=>{
     }
   };
   try {
-    const embeds = embedsDiscordMessage(discordName, item.date, `[${item.streakCount} days](${window.location.href})`);
+    const embeds = [embedDiscordMessage(discordName, item.date, `[${item.streakCount} days](${window.location.href})`)];
     const payload = {
       username: "LeetStreak",
       embeds: embeds,

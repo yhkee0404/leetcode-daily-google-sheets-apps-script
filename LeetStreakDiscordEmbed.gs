@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-function embedsDiscordMessage(nickname, date, streak) {
+function embedDiscordMessage(nickname, date, streak) {
   return {
     title: "[Auto-Sent by Timer] LeetCode Daily Challenge Completed! 🎉",
     description: "테스트해보실 분은 출석부의 명단 시트에 리트코드 아이디를 적어 주세요.",
