@@ -56,26 +56,11 @@ async function sendDiscordYesterday() {
     }
     const linkUrl = history.getLinkUrl();
     const discordName = leetCodeIdToDiscordName[leetCodeId] || '';
-    items.push([discordName, streak, linkUrl]);
+    const streakString = linkUrl ? `[${streak} days](${linkUrl})` : `${streak} days`;
+    items.push([discordName, streakString]);
   }
-
-  // 김도율 님: https://github.com/doxxx-playground/LeetStreak/blob/519fe02e038694cf82cfc5df4d89ef562f717225/popup.js#L62-L86
-  const embeds = items.map(([nickname, streak, linkUrl]) => {
-    return {
-      title: "[Auto-Sent by Timer] LeetCode Daily Challenge Completed! 🎉",
-      description: "테스트해보실 분은 출석부의 명단 시트에 리트코드 아이디를 적어 주세요.",
-      color: 5814783,
-      fields: [
-        { name: "Nickname", value: nickname, inline: true },
-        { name: "Date", value: yesterdayString, inline: true },
-        {
-          name: "Current Streak",
-          value: linkUrl ? `[${streak} days](${linkUrl})` : `${streak} days`,
-          inline: true,
-        },
-      ],
-    }
-  });
+  
+  const embeds = items.map(item => embedsDiscordMessage(item[0], yesterdayString, item[1]));
   if (embeds.length == 0) {
     return;
   }
