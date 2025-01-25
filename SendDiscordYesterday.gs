@@ -56,11 +56,10 @@ async function sendDiscordYesterday() {
     }
     const linkUrl = history.getLinkUrl();
     const discordName = leetCodeIdToDiscordName[leetCodeId] || '';
-    const streakString = linkUrl ? `[${streak} days](${linkUrl})` : `${streak} days`;
-    items.push([discordName, streakString]);
+    items.push([discordName, linkUrl ? `[yesterdayString](${linkUrl})` : yesterdayString, `${streak} days`]);
   }
   
-  const embeds = items.map(item => embedDiscordMessage(item[0], yesterdayString, item[1]));
+  const embeds = items.map(item => embedDiscordMessage(...item));
   if (embeds.length == 0) {
     return;
   }

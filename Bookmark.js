@@ -1,10 +1,10 @@
 javascript:(async ()=>{
-  const discordName = '';
-  const webhookUrl = '';
+  const discordName = "";
+  const webhookUrl = "";
   /*
   discordName과 webhookUrl을 변경하고 브라우저 북마크 URL에 입력해 주세요.
   webhookUrl은 유출되면 안 됩니다.
-  문의: https://github.com/yhkee0404/leetcode-daily-google-sheets-apps-script
+  문의 및 변경 관리: https://github.com/yhkee0404/leetcode-daily-google-sheets-apps-script/commits/main/Bookmark.js
   */
   if (! discordName) {
     window.alert('Discord 닉네임을 입력해야 합니다.');
@@ -35,7 +35,7 @@ javascript:(async ()=>{
   try {
     const words = window.location.pathname.split('/');
     if (words.indexOf('submissions') == -1 || ! Number(words[words.length - 2])) {
-      throw new Error(`Submission Detail 페이지로 이동해 주세요.\n현재 페이지: ${window.location}`);
+      throw new Error(`Submissions 목록의 Accepted를 클릭해서 제출 상세 페이지로 이동해 주세요.\n현재 페이지: ${window.location}`);
     }
     let titleSlug;
     if (window.__NEXT_DATA__) {
@@ -72,8 +72,8 @@ javascript:(async ()=>{
     }
     const json = await response.json();
     item = json.data.question.challengeQuestionsV2.filter(x => x.type == 'DAILY' && x.status == 'FINISHED')
-        .reduce((a, b) => a.streakCount > b.streakCount ? a : b, {streakCount: 0});
-    if (! item.streakCount) {
+        .reduce((a, b) => a.streakCount > b.streakCount ? a : b, {streakCount: -1});
+    if (item.streakCount < 0) {
       throw new Error('도전 달성한 이력이 없습니다.');
     }
   } catch (error) {
@@ -109,7 +109,7 @@ javascript:(async ()=>{
   function embedDiscordMessage(nickname, date, streak) {
     return {
       title: "[Bookmark] LeetCode Daily Challenge Completed! 🎉",
-      description: "모바일 또는 크롬 외 브라우저의 북마크 인증입니다. 지난 문제 재인증을 지원합니다.",
+      description: "모바일 또는 크롬 외 브라우저의 [북마크 인증](https://discord.com/channels/1191440569671614554/1327186963681247252/1332780701237514302)입니다. 지난 문제 재인증을 지원합니다.",
       color: 5814783,
       fields: [
         { name: "Nickname", value: nickname, inline: true },
@@ -123,7 +123,7 @@ javascript:(async ()=>{
     }
   };
   try {
-    const embeds = [embedDiscordMessage(discordName, item.date, `[${item.streakCount} days](${window.location.href})`)];
+    const embeds = [embedDiscordMessage(discordName, `[${item.date}](${window.location.href})`, `${item.streakCount + 1} days`)];
     const payload = {
       username: "LeetStreak",
       embeds: embeds,
@@ -136,7 +136,6 @@ javascript:(async ()=>{
     if (! response.ok) {
       throw new Error(`Response status: ${response.status}`);
     }
-    console.log(embeds);
   } catch (error) {
     window.alert(`Discord 전송 실패: ${error.message}`);
     return;
