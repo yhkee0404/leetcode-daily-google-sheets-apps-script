@@ -60,7 +60,7 @@ async function sendDiscordYesterday() {
     items.push([discordName, streakString]);
   }
   
-  const embeds = items.map(item => embedsDiscordMessage(item[0], yesterdayString, item[1]));
+  const embeds = items.map(item => embedDiscordMessage(item[0], yesterdayString, item[1]));
   if (embeds.length == 0) {
     return;
   }
