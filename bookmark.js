@@ -1,4 +1,5 @@
-(async (discordName, webhookUrl)=>{
+(async ()=>{
+  const {discordName, webhookUrl} = window.bookmarkConfig();
   if (! discordName) {
     window.alert('Discord 닉네임을 입력해야 합니다.');
     return;
