@@ -1,11 +1,4 @@
-javascript:(async ()=>{
-  const discordName = "";
-  const webhookUrl = "";
-  /*
-  discordName과 webhookUrl을 변경하고 브라우저 북마크 URL에 입력해 주세요.
-  webhookUrl은 유출되면 안 됩니다.
-  문의 및 변경 관리: https://github.com/yhkee0404/leetcode-daily-google-sheets-apps-script/commits/main/Bookmark.js
-  */
+(async (discordName, webhookUrl)=>{
   if (! discordName) {
     window.alert('Discord 닉네임을 입력해야 합니다.');
     return;
