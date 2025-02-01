@@ -19,9 +19,21 @@ async function updateDailyQuestion() {
   const data = JSON.parse(response.getContentText());
   const {date, link, question: {title}} = data.data.activeDailyCodingChallengeQuestion;
   
-  const dateDay = date.split('-').pop();
-  const dateCell = sheet.getRange('E6:5').createTextFinder(dateDay).matchEntireCell(true).findNext();
+  const dateDay = Number(date.split('-').pop());
+  const dateCell = sheet.getRange('E5:5').createTextFinder(dateDay).matchEntireCell(true).findNext();
 
+  const questionCell = sheet.getRange(4, dateCell.getColumn());
+  // 기존 값이 있는 경우 한 행 위에 백업한 뒤 덮어쓴다.
+  if (questionCell.getValue()) {
+    sheet.getRange(3, dateCell.getColumn()).setRichTextValue(questionCell.getRichTextValue());
+  }
   const richTextValue = SpreadsheetApp.newRichTextValue().setText(title).setLinkUrl(leetCodeUrl + link).build();
-  sheet.getRange(4, dateCell.getColumn()).setRichTextValue(richTextValue);
+  questionCell.setRichTextValue(richTextValue);
+
+  // 오늘이 말일이면 0일에도 복사해 놓는다.
+  const today = new Date(date);
+  const tomorrow = new Date(today.getTime() + 24 * 3600 * 1000);
+  if (tomorrow.getUTCDate() == 1) {
+    sheet.getRange(4, dateCell.getColumn() - dateDay).setRichTextValue(richTextValue);
+  }
 }

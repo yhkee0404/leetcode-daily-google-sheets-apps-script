@@ -6,16 +6,18 @@ async function updateHistoryYesterday() {
   // prod sheet id 1030832484
   const sheet = spreadsheet.getSheetById(990701901);
 
-  const date = new Date();
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
 
-  const yesterdayCell = sheet.getRange('F5:5').createTextFinder(date.getUTCDate() - 1).findNext();
+  const yesterday = new Date(today.getTime() - 24 * 3600 * 1000);
+  const yesterdayCell = sheet.getRange('F5:5').createTextFinder(yesterday.getUTCDate()).findNext();
   if (yesterdayCell === null) {
     return;
   }
+  
   // 어제의 문제를 최근에 풀었더라도 어제 안 풀었으면 결석이다.
-  date.setUTCHours(0, 0, 0, 0);
-  const today = date.getTime() / 1000;
-  const yesterday = today - 24 * 3600;
+  const todayTimestamp = today.getTime() / 1000;
+  const yesterdayTimestamp = yesterday.getTime() / 1000;
 
   // 어제의 문제는 어제 자동으로 입력됐다.
   const yesterdayQuestion = sheet.getRange(4, yesterdayCell.getColumn());
@@ -79,7 +81,7 @@ async function updateHistoryYesterday() {
       const data = JSON.parse(response.getContentText());
 
       const submission = data.data.recentAcSubmissionList.find(x => x.title == title);
-      if (!! submission && submission.timestamp >= yesterday && submission.timestamp < today) {
+      if (!! submission && submission.timestamp >= yesterdayTimestamp && submission.timestamp < todayTimestamp) {
         const linkUrl = `${yesterdayQuestion.getRichTextValue().getLinkUrl()}submissions/${submission.id}/`;
         const richTextValue = SpreadsheetApp.newRichTextValue().setText(streak).setLinkUrl(linkUrl).build();
         sheet.getRange(row, yesterdayCell.getColumn()).setRichTextValue(richTextValue);
@@ -88,4 +90,11 @@ async function updateHistoryYesterday() {
     }));
   }
   await Promise.all(promises);
+  
+  // 어제가 말일이면 0일에도 복사해 놓는다.
+  if (today.getUTCDate() == 1) {
+    const initialHistoryRange = sheet.getRange(rowStart, yesterdayCell.getColumn() - yesterday.getUTCDate());
+    sheet.getRange(rowStart, yesterdayCell.getColumn(), leetCodeIds.length)
+        .copyTo(initialHistoryRange);
+  }
 }
