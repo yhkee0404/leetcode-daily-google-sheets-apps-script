@@ -7,13 +7,14 @@ async function sendDiscordYesterday() {
   const sheet = spreadsheet.getSheetById(990701901);
   const userSheet = spreadsheet.getSheetByName('명단');
 
-  const date = new Date();
+  const today = new Date();
 
-  const yesterdayCell = sheet.getRange('F5:5').createTextFinder(date.getUTCDate() - 1).findNext();
+  const yesterday = new Date(today.getTime() - 24 * 3600 * 1000);
+  const yesterdayCell = sheet.getRange('F5:5').createTextFinder(yesterday.getUTCDate()).findNext();
   if (yesterdayCell === null) {
     return;
   }
-  const yesterdayString = (new Date(date - 24 * 3600 * 1000)).toISOString().substring(0, 10);
+  const yesterdayString = yesterday.toISOString().substring(0, 10);
   
   // 명단 순서가 상관없는 이유는 순서 없는 해시맵을 사용하기 때문이다.
   const leetCodeIdToDiscordName = userSheet.getRange('D5:G').getValues().reduce((obj, [discordName, leetCodeId]) => {
@@ -72,5 +73,5 @@ async function sendDiscordYesterday() {
     contentType: 'application/json',
     payload: JSON.stringify(payload),
   }
-  const response = UrlFetchApp.fetch(privateDiscordUrl, options);
+  UrlFetchApp.fetch(privateDiscordUrl, options);
 }
