@@ -77,16 +77,19 @@ async function updateHistoryYesterday() {
         contentType: 'application/json',
         payload: JSON.stringify(payload),
       }
-      const response = UrlFetchApp.fetch(`${leetCodeUrl}/graphql`, options);
-      const data = JSON.parse(response.getContentText());
+      try {
+        const response = UrlFetchApp.fetch(`${leetCodeUrl}/graphql`, options);
+        const data = JSON.parse(response.getContentText());
 
-      const submission = data.data.recentAcSubmissionList.find(x => x.title == title);
-      if (!! submission && submission.timestamp >= yesterdayTimestamp && submission.timestamp < todayTimestamp) {
-        const linkUrl = `${yesterdayQuestion.getRichTextValue().getLinkUrl()}submissions/${submission.id}/`;
-        const richTextValue = SpreadsheetApp.newRichTextValue().setText(streak).setLinkUrl(linkUrl).build();
-        sheet.getRange(row, yesterdayCell.getColumn()).setRichTextValue(richTextValue);
+        const submission = data.data.recentAcSubmissionList.find(x => x.title == title);
+        if (!! submission && submission.timestamp >= yesterdayTimestamp && submission.timestamp < todayTimestamp) {
+          const linkUrl = `${yesterdayQuestion.getRichTextValue().getLinkUrl()}submissions/${submission.id}/`;
+          const richTextValue = SpreadsheetApp.newRichTextValue().setText(streak).setLinkUrl(linkUrl).build();
+          sheet.getRange(row, yesterdayCell.getColumn()).setRichTextValue(richTextValue);
+        }
+      } finally (e) {
+        resolve();
       }
-      resolve();
     }));
   }
   await Promise.all(promises);
