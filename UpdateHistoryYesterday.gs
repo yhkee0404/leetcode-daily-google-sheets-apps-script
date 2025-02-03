@@ -87,7 +87,7 @@ async function updateHistoryYesterday() {
           const richTextValue = SpreadsheetApp.newRichTextValue().setText(streak).setLinkUrl(linkUrl).build();
           sheet.getRange(row, yesterdayCell.getColumn()).setRichTextValue(richTextValue);
         }
-      } finally (e) {
+      } finally {
         resolve();
       }
     }));
