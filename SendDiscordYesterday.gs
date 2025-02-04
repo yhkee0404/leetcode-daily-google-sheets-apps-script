@@ -60,18 +60,28 @@ async function sendDiscordYesterday() {
     items.push([discordName, linkUrl ? `[${yesterdayString}](${linkUrl})` : yesterdayString, `${streak} days`]);
   }
   
-  const embeds = items.map(item => embedDiscordMessage(...item));
+  const embeds = items.map(item => embedDiscordMessage(...item, 3450963));
   if (embeds.length == 0) {
     return;
   }
 
-  const payload = {
-    username: "LeetStreak",
-    embeds: embeds,
+  const promises = [];
+  for (let i = 0, j = 10; i < embeds.length; i = j, j += 10) {
+    const payload = {
+      username: "LeetStreak",
+      embeds: embeds.slice(i, j),
+    }
+    const options = {
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+    }
+    promises.push(new Promise(resolve => {
+      try {
+        UrlFetchApp.fetch(privateDiscordUrl, options);
+      } finally {
+        resolve();
+      }
+    }));
   }
-  const options = {
-    contentType: 'application/json',
-    payload: JSON.stringify(payload),
-  }
-  UrlFetchApp.fetch(privateDiscordUrl, options);
+  await Promise.all(promises);
 }
