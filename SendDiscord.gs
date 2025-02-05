@@ -1,16 +1,23 @@
 // Compare and open pull request here: https://github.com/yhkee0404/leetcode-daily-google-sheets-apps-script
 
 async function sendDiscordYesterday() {
+  await sendDiscord(await getYesterday());
+}
+
+async function sendDiscordPromptDay() {
+  await sendDiscord(await promptDay());
+}
+
+async function sendDiscord(yesterday) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   // test sheet id 990701901
   // prod sheet id 1030832484
   const sheet = spreadsheet.getSheetById(990701901);
   const userSheet = spreadsheet.getSheetByName('명단');
 
-  const today = new Date();
-
-  const yesterday = new Date(today.getTime() - 24 * 3600 * 1000);
-  const yesterdayCell = sheet.getRange('F5:5').createTextFinder(yesterday.getUTCDate()).findNext();
+  const yesterdayCell = sheet.getRange('F5:5')
+      .createTextFinder(yesterday.getUTCDate())
+      .findNext();
   if (yesterdayCell === null) {
     return;
   }

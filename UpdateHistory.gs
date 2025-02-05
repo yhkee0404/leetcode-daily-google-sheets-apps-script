@@ -1,19 +1,27 @@
 // Compare and open pull request here: https://github.com/yhkee0404/leetcode-daily-google-sheets-apps-script
 
 async function updateHistoryYesterday() {
+  await updateHistory(await getYesterday());
+}
+
+async function updateHistoryPromptDay() {
+  await updateHistory(await promptDay());
+}
+
+async function updateHistory(yesterday) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   // test sheet id 990701901
   // prod sheet id 1030832484
   const sheet = spreadsheet.getSheetById(990701901);
 
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-
-  const yesterday = new Date(today.getTime() - 24 * 3600 * 1000);
-  const yesterdayCell = sheet.getRange('F5:5').createTextFinder(yesterday.getUTCDate()).findNext();
+  const yesterdayCell = sheet.getRange('F5:5')
+      .createTextFinder(yesterday.getUTCDate())
+      .findNext();
   if (yesterdayCell === null) {
     return;
   }
+  yesterday.setUTCHours(0, 0, 0, 0);
+  const today = new Date(yesterday.getTime() + oneDay);
   
   // 어제의 문제를 최근에 풀었더라도 어제 안 풀었으면 결석이다.
   const todayTimestamp = today.getTime() / 1000;
