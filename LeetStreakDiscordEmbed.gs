@@ -24,10 +24,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-function embedDiscordMessage(nickname, date, streak, color = 5814783) {
+function embedDiscordMessage(nickname, date, streak, no, submission_order, color = 5814783) {
   return {
     title: "[Auto-Sent by Timer] LeetCode Daily Challenge Completed! 🎉",
-    description: "테스트해보실 분은 출석부의 명단 시트에 리트코드 아이디를 적어 주세요.",
     color: color,
     fields: [
       { name: "Nickname", value: nickname, inline: true },
@@ -37,6 +36,8 @@ function embedDiscordMessage(nickname, date, streak, color = 5814783) {
         value: streak,
         inline: true,
       },
+      { name: "No.", value: no, inline: true },
+      { name: "Submission Order", value: submission_order, inline: true },
     ],
   }
 };
