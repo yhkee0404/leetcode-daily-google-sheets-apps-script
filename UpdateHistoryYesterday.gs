@@ -25,74 +25,69 @@ async function updateHistoryYesterday() {
   if (! title) {
     return;
   }
-  /*
-  Deprecated: 디스코드 닉네임 대신 리트코드 아이디 사용
-
-  // 명단 순서가 상관없는 이유는 순서 없는 해시맵을 사용하기 때문이다.
-  const userSheet = spreadsheet.getSheetByName('명단');
-  const userSheetDiscordNames = userSheet.getRange('D5:D').getValues()
-  const leetCodeIds = userSheet.getRange('G5:G').getValues();
-  const discordNameToleetCodeId = {}
-  for (let i = Math.min(userSheetDiscordNames.length, leetCodeIds.length) - 1; i >= 0; i--) {
-    if (userSheetDiscordNames[i][0] && leetCodeIds[i][0]) {
-      discordNameToleetCodeId[userSheetDiscordNames[i][0]] = leetCodeIds[i][0];
-    }
-  }
-  if (Object.keys(discordNameToleetCodeId).length == 0) {
-    return;
-  }
-  */
 
   // 변경 대상 번호는 6행부터 1번이다. 오름차순인지는 확인하지 않는다. 연속하지 않을 수도 있다.
   const rowStart = 6;
-  const targets = sheet.getRange(`B${rowStart}:B`).createTextFinder('^\\d+$').useRegularExpression(true).findAll()
+  const targets = sheet.getRange(`B${rowStart}:B`)
+      .createTextFinder('^\\d+$')
+      .useRegularExpression(true)
+      .findAll()
       .map(range => range.getRow());
-  
-  const leetCodeIds = sheet.getRange(`D${rowStart}:D`).getValues();
-  
-  const previousHistories = sheet.getRange(rowStart, yesterdayCell.getColumn() - 1, leetCodeIds.length).getValues();
-  
-  const promises = []
-  for (let i = 0, j = 0, row = rowStart; i != leetCodeIds.length && j != targets.length; i++, row++) {
-    if (row != targets[j]) {
-      continue;
-    }
-    j++;
-    const leetCodeId = leetCodeIds[i][0];
-    if (! leetCodeId || leetCodeId == 'Not Found') {
-      continue;
-    }
-    const streak = (+ previousHistories[i][0] || 0) + 1;
-    promises.push(new Promise(resolve => {
-      // 하루에 15개보다 많이 푸는 사람이 있다면 더 크게 조절해야 한다.
-      const variables = {
-        username: leetCodeId,
-        limit: 15,
-      };
-      const payload = {
-        query: leetCodeQueries.recentAcSubmissions,
-        variables: variables,
-      }
-      const options = {
-        contentType: 'application/json',
-        payload: JSON.stringify(payload),
-      }
-      try {
-        const response = UrlFetchApp.fetch(`${leetCodeUrl}/graphql`, options);
-        const data = JSON.parse(response.getContentText());
-
-        const submission = data.data.recentAcSubmissionList.find(x => x.title == title);
-        if (!! submission && submission.timestamp >= yesterdayTimestamp && submission.timestamp < todayTimestamp) {
-          const linkUrl = `${yesterdayQuestion.getRichTextValue().getLinkUrl()}submissions/${submission.id}/`;
-          const richTextValue = SpreadsheetApp.newRichTextValue().setText(streak).setLinkUrl(linkUrl).build();
-          sheet.getRange(row, yesterdayCell.getColumn()).setRichTextValue(richTextValue);
-        }
-      } finally {
-        resolve();
-      }
-    }));
+  if (targets.length == 0) {
+    return;
   }
-  await Promise.all(promises);
+
+  const leetCodeIds = sheet.getRange(rowStart, 4, targets[targets.length - 1] - rowStart + 1)
+      .getValues()
+      .map(x => x[0]);
+  
+  const previousHistories = sheet.getRange(rowStart, yesterdayCell.getColumn() - 1, leetCodeIds.length)
+      .getValues()
+      .map(x => x[0]);
+  
+  await Promise.all(
+        targets.filter(x => {
+              const y = x - rowStart;
+              return leetCodeIds[y] && leetCodeIds[y] != 'Not Found';
+            }).map(x => {
+              const y = x - rowStart;
+              const leetCodeId = leetCodeIds[y];
+              const streak = (+ previousHistories[y] || 0) + 1;
+
+              // 하루에 15개보다 많이 푸는 사람이 있다면 더 크게 조절해야 한다.
+              const variables = {
+                username: leetCodeId,
+                limit: 15,
+              };
+              const payload = {
+                query: leetCodeQueries.recentAcSubmissions,
+                variables: variables,
+              };
+              const options = {
+                contentType: 'application/json',
+                payload: JSON.stringify(payload),
+              };
+              return new Promise(resolve => {
+                try {
+                  const response = UrlFetchApp.fetch(`${leetCodeUrl}/graphql`, options);
+                  const data = JSON.parse(response.getContentText());
+
+                  const submission = data.data.recentAcSubmissionList.find(x => x.title == title);
+                  if (!! submission && submission.timestamp >= yesterdayTimestamp && submission.timestamp < todayTimestamp) {
+                    const linkUrl = `${yesterdayQuestion.getRichTextValue().getLinkUrl()}submissions/${submission.id}/`;
+                    const richTextValue = SpreadsheetApp.newRichTextValue()
+                        .setText(streak)
+                        .setLinkUrl(linkUrl)
+                        .build();
+                    sheet.getRange(x, yesterdayCell.getColumn())
+                        .setRichTextValue(richTextValue);
+                  }
+                } finally {
+                  resolve();
+                }
+              });
+            })
+      );
   
   // 어제가 말일이면 0일에도 복사해 놓는다.
   if (today.getUTCDate() == 1) {
