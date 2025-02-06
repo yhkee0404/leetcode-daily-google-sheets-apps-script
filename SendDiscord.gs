@@ -55,13 +55,11 @@ async function sendDiscord(yesterday) {
     return;
   }
 
-  // 리트코드 아이디가 없거나 디스코드 닉네임이 없으면 이름이라도 사용한다.
-  const names = sheet.getRange(rowStart, 3, targets[targets.length - 1] + 1, 4)
-      .getValues()
-      .map(x => x[1] && x[1] != 'Not Found' && leetCodeIdToDiscordName[x[1]] || x[0] || '');
+  const nameLeetCodeIds = sheet.getRange(rowStart, 3, targets[targets.length - 1] + 1, 4)
+      .getValues();
 
   // https://gist.github.com/tanaikech/82a74e64abcacabd51be8ff92c73691a
-  const historyRange = sheet.getRange(rowStart, yesterdayCell.getColumn(), names.length);
+  const historyRange = sheet.getRange(rowStart, yesterdayCell.getColumn(), nameLeetCodeIds.length);
   const orgNumberFormats = historyRange.getNumberFormats();
   const histories = historyRange.setNumberFormat("@")
       .getRichTextValues()
@@ -73,9 +71,8 @@ async function sendDiscord(yesterday) {
         const history = histories[x];
         const streak = history.getText();
         const linkUrl = history.getLinkUrl();
-        const name = names[x];
         return [
-          name,
+          nameLeetCodeIds[x],
           linkUrl,
           `${streak} days`,
           `${i + 1} / ${arr.length}`,
@@ -87,32 +84,42 @@ async function sendDiscord(yesterday) {
   if (items.length == 0) {
     return;
   }
-  let j = 0, num_valid = 0;
   items.toSorted((a, b) => a.at(-1) - b.at(-1))
       .map((x, i, arr) => {
         const submission = x.at(-1);
         const valid = submission != Infinity;
-        const duplicated = i != 0 && valid && arr[i - 1].at(-2) == submission;
-        if (! duplicated && valid) {
-          num_valid++;
-        }
-        x.push(duplicated);
+        const leftDuplicated = valid && i != 0 && arr[i - 1].at(-3) == submission;
+        const rightDuplicated = valid && i + 1 != arr.length && arr[i + 1].at(-1) == submission;
+        const duplicated = leftDuplicated || rightDuplicated;
+        const submissionOrder = i == 0 ? (valid ? 1 : 0)
+            : arr[i - 1].at(-1) + (! valid || leftDuplicated ? 0 : 1);
+        x.push(duplicated, submissionOrder);
         return x;
-      }).forEach((x, i, arr) => {
+      }).forEach((x, _, arr) => {
+        const lastSubmissionOrder = arr.at(-1).at(-1);
+        const [name, leetCodeId] = x[0];
         const linkUrl = x[1];
+        let submissionOrder = x.pop();
         const duplicated = x.pop();
         const submission = x.pop();
+
+        // 디스코드 닉네임이 없으면 이름이나 리트코드 아이디라도 사용한다.
+        const missingLeetCodeId = ! leetCodeId || leetCodeId == 'Not Found';
+        x[0] = ! missingLeetCodeId && leetCodeIdToDiscordName[leetCodeId] || name || leetCodeId || '';
         
         x[1] = linkUrl ? `[${yesterdayString}](${linkUrl})` : yesterdayString;
-        if (duplicated) {
-          j++;
-        }
-        const submission_order = ! linkUrl ? 'Invalid LeetCode ID'
-            : submission == Infinity ? 'Tampered Submission Link'
-            : `${duplicated || i + 1 != arr.length && arr[i + 1].at(-1) ? 'Duplicated ' : ''}${ordinal(i + 1 - j)} out of ${num_valid}`;
+
+        submissionOrder = ! linkUrl ? (
+              missingLeetCodeId ? 'Missing LeetCode ID' : `Blinded link or invalid ID: [${leetCodeId}](https://leetcode.com/u/${leetCodeId}/)`
+            )
+            : submission == Infinity ? 'Tampered link'
+            : `${duplicated ? 'Duplicated ' : ''}${ordinal(submissionOrder)} out of ${lastSubmissionOrder}`;
         let color = 3450963;
-        switch (submission_order[0]) {
-          case 'I':
+        switch (submissionOrder[0]) {
+          case 'M':
+            color = 0;
+            break;
+          case 'B':
             color = 11513775;
             break;
           case 'T':
@@ -124,10 +131,10 @@ async function sendDiscord(yesterday) {
           default:
             break;
         }
-        x.push(submission_order, color);
+        x.push(submissionOrder, color);
       });
 
-  const embeds = items.map((item, i) => embedDiscordMessage(...item));
+  const embeds = items.map(item => embedDiscordMessage(...item));
 
   const promises = [];
   for (let i = 0, j = 10; i < embeds.length; i = j, j += 10) {
