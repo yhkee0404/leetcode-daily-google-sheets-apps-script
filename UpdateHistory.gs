@@ -1,11 +1,19 @@
 // Compare and open pull request here: https://github.com/yhkee0404/leetcode-daily-google-sheets-apps-script
 
 async function updateHistoryYesterday() {
-  await updateHistory(await getYesterday());
+  const day = await getYesterday();
+  if (! day) {
+    return;
+  }
+  await updateHistory(day);
 }
 
 async function updateHistoryPromptDay() {
-  await updateHistory(await promptDay());
+  const day = await promptDay();
+  if (! day) {
+    return;
+  }
+  await updateHistory(day);
 }
 
 async function updateHistory(yesterday) {

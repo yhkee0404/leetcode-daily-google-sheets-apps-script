@@ -1,11 +1,19 @@
 // Compare and open pull request here: https://github.com/yhkee0404/leetcode-daily-google-sheets-apps-script
 
 async function sendDiscordYesterday() {
-  await sendDiscord(await getYesterday());
+  const day = await getYesterday();
+  if (! day) {
+    return;
+  }
+  await sendDiscord(day);
 }
 
 async function sendDiscordPromptDay() {
-  await sendDiscord(await promptDay());
+  const day = await promptDay();
+  if (! day) {
+    return;
+  }
+  await sendDiscord(day);
 }
 
 async function sendDiscord(yesterday) {
@@ -101,7 +109,7 @@ async function sendDiscord(yesterday) {
         }
         const submission_order = ! linkUrl ? 'Invalid LeetCode ID'
             : submission == Infinity ? 'Tampered Submission Link'
-            : `${duplicated || i != arr.length && arr[i + 1].at(-1) ? 'Duplicated ' : ''}${ordinal(i + 1 - j)} out of ${num_valid}`;
+            : `${duplicated || i + 1 != arr.length && arr[i + 1].at(-1) ? 'Duplicated ' : ''}${ordinal(i + 1 - j)} out of ${num_valid}`;
         let color = 3450963;
         switch (submission_order[0]) {
           case 'I':
