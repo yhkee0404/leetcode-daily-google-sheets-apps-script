@@ -56,11 +56,19 @@ async function updateHistory(yesterday) {
   const leetCodeIds = sheet.getRange(rowStart, 4, targets[targets.length - 1] - rowStart + 1)
       .getValues()
       .map(x => x[0]);
-  
+
   const previousHistories = sheet.getRange(rowStart, yesterdayCell.getColumn() - 1, leetCodeIds.length)
       .getValues()
       .map(x => x[0]);
-  
+
+  const emptyStyle = SpreadsheetApp.newTextStyle()
+      .setUnderline(false)
+      .build();
+  sheet.getRange(rowStart, yesterdayCell.getColumn(), leetCodeIds.length)
+      .setTextStyle(emptyStyle)
+      .setFontColor('black')
+      .clearContent();
+
   await Promise.all(
         targets.filter(x => {
               const y = x - rowStart;
