@@ -79,7 +79,7 @@ async function updateHistory(yesterday) {
               const leetCodeId = leetCodeIds[y];
               const streak = (+ previousHistories[y] || 0) + 1;
 
-              // 하루에 20개보다 많이 푸는 사람이 있다면 더 크게 조절해야 한다.
+              // 최댓값이 20개라 하루에 더 많이 푸는 사람이 있다면 마지막 20개 전에 포함되지 않는 경우 재제출해야 한다.
               const variables = {
                 username: leetCodeId,
                 limit: 20,
@@ -109,6 +109,7 @@ async function updateHistory(yesterday) {
                         .setRichTextValue(richTextValue);
                   }
                 } finally {
+                  Logger.log(leetCodeId);
                   Logger.log(response?.getAllHeaders());
                   Logger.log(response?.getContentText());
                   resolve();
