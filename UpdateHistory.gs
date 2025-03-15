@@ -34,6 +34,7 @@ async function updateHistory(yesterday) {
   // 어제의 문제를 최근에 풀었더라도 어제 안 풀었으면 결석이다.
   const todayTimestamp = today.getTime() / 1000;
   const yesterdayTimestamp = yesterday.getTime() / 1000;
+  Logger.log({yesterday: yesterday.toUTCString(), today: today.toUTCString(), yesterdayTimestamp: yesterdayTimestamp.toString(), todayTimestamp: todayTimestamp.toString()});
 
   // 어제의 문제는 어제 자동으로 입력됐다.
   const yesterdayQuestion = sheet.getRange(4, yesterdayCell.getColumn());
@@ -78,10 +79,10 @@ async function updateHistory(yesterday) {
               const leetCodeId = leetCodeIds[y];
               const streak = (+ previousHistories[y] || 0) + 1;
 
-              // 하루에 15개보다 많이 푸는 사람이 있다면 더 크게 조절해야 한다.
+              // 하루에 20개보다 많이 푸는 사람이 있다면 더 크게 조절해야 한다.
               const variables = {
                 username: leetCodeId,
-                limit: 15,
+                limit: 20,
               };
               const payload = {
                 query: leetCodeQueries.recentAcSubmissions,
@@ -92,12 +93,13 @@ async function updateHistory(yesterday) {
                 payload: JSON.stringify(payload),
               };
               return new Promise(resolve => {
+                let response;
                 try {
-                  const response = UrlFetchApp.fetch(`${leetCodeUrl}/graphql`, options);
+                  response = UrlFetchApp.fetch(`${leetCodeUrl}/graphql`, options);
                   const data = JSON.parse(response.getContentText());
 
                   const submission = data.data.recentAcSubmissionList.find(x => x.title == title);
-                  if (!! submission && submission.timestamp >= yesterdayTimestamp && submission.timestamp < todayTimestamp) {
+                  if (submission?.timestamp >= yesterdayTimestamp && submission?.timestamp < todayTimestamp) {
                     const linkUrl = `${yesterdayQuestion.getRichTextValue().getLinkUrl()}submissions/${submission.id}/`;
                     const richTextValue = SpreadsheetApp.newRichTextValue()
                         .setText(streak)
@@ -107,6 +109,8 @@ async function updateHistory(yesterday) {
                         .setRichTextValue(richTextValue);
                   }
                 } finally {
+                  Logger.log(response?.getAllHeaders());
+                  Logger.log(response?.getContentText());
                   resolve();
                 }
               });
