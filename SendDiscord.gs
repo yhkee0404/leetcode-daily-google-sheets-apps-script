@@ -102,13 +102,13 @@ async function sendDiscord(yesterday) {
         let submissionOrder = x.pop();
         const duplicated = x.pop();
         const submission = x.pop();
-
+        
         // 디스코드 닉네임이 없으면 이름이나 리트코드 아이디라도 사용한다.
         const missingLeetCodeId = ! leetCodeId || leetCodeId == 'Not Found';
         x[0] = ! missingLeetCodeId && leetCodeIdToDiscordName[leetCodeId] || name || leetCodeId || '';
-        
-        x[1] = linkUrl ? `[${yesterdayString}](${linkUrl})` : yesterdayString;
 
+        x[1] = linkUrl ? `[${yesterdayString}](${linkUrl})` : yesterdayString;
+        
         submissionOrder = ! linkUrl ? (
               missingLeetCodeId ? 'Missing LeetCode ID' : `Blinded link or invalid ID: [${leetCodeId}](https://leetcode.com/u/${leetCodeId}/)`
             )
